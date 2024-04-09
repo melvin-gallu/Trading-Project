@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
+from typing import Annotated
 
 class Item(BaseModel):
     name: str
@@ -9,18 +10,22 @@ class Item(BaseModel):
 
 app = FastAPI()
 
-@app.post("/items/")
-async def create_item(item: Item):
-    item_dict = item.model_dump()
-    if item.tax:
-        price_with_tax = item.price + item.tax
-        item_dict.update({"price_with_tax": price_with_tax})
-    return item_dict
+@app.get("/items/")
+async def read_items(q: Annotated[str|None, Query(max_length=50)] = None):
+    """
+    Specifiy condition for validation using annotated query parameter
+    """
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q":q})
+    return results
 
-
-@app.put("/items/{item_id}")
-async def update_item(item_id: int, item: Item, q: str|None = None):
-    result = {"item_id": item_id, **item.model_dump()}
-    if q: 
-        result.update({"q": q})
-    return result
+@app.get("/items/bis/")
+async def read_items(q: Annotated[str|None, Query(min_length=3,max_length=50,pattern="^fixedquery$")] = None):
+    """
+    Specify a regex expression to use in the annotated query parameter
+    """
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q":q})
+    return results
