@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Path
+from fastapi import FastAPI, Query, Path, Body
 from pydantic import BaseModel
 from typing import Annotated
 
@@ -8,14 +8,25 @@ class Item(BaseModel):
     price: float
     tax: float|None = None
 
+class User(BaseModel):
+    username: str
+    full_name: str|None = None
+
 app = FastAPI()
 
-@app.get("/items/{item_id}")
-async def read_items(item_id: Annotated[int, Path(title="The ID of the item", ge=3)], q: Annotated[str|None, Query()] = None):
+@app.put("/items/{item_id}")
+async def update_item(item_id: Annotated[int|None, Path(lt=100)], 
+                      q: Annotated[str|None, Query()] = None,
+                      item: Item|None = None, user: User|None = None,
+                      importance: Annotated[int, Body(le=5)] = 5):
     """
-    Path parameter with specific conditions for valid argument
+    Path parameter + query parameter + multiple body parameters
     """
-    results = {"items_id": item_id}
+    results = {"item_id": item_id}
     if q:
-        results.update({"q":q})
+        results.update({"q": q})
+    if item:
+        results.update({"item": item})
+    if user:
+        results.update({"user": user})
     return results
