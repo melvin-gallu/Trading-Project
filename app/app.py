@@ -29,3 +29,21 @@ async def read_items(q: Annotated[str|None, Query(min_length=3,max_length=50,pat
     if q:
         results.update({"q":q})
     return results
+
+@app.get("/items/tris/")
+async def read_items(q: Annotated[str, Query(min_length=3,max_length=50)]):
+    """
+    Make query parameter required
+    """
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q":q})
+    return results
+@app.get("/items/list/")
+async def read_items_list(q: Annotated[list[str]|None, Query()] = ["Mel","vin"]):
+    """
+    Query parameter defined as a list of string
+    Call it via /items/list/?q=item1&q=item2
+    """
+    query_items = {"q": q}
+    return query_items
