@@ -1,29 +1,27 @@
-from fastapi import FastAPI, Query, Path, Body
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header
 from pydantic import BaseModel, Field
 from typing import Annotated
 
-
-class Image(BaseModel):
-    url: str
-    name: str|None = None
-
-class Item(BaseModel):
-    name: str
-    description: str|None = Field(default=None, title="Description of the item", max_length=300)
-    price: float = Field(gt=0)
-    tax: float|None = None
-    tags: list[int] = []
-    tags_unique: set[int] = set() #set contains only unique values
-    image: Image|None = None #nest another class in *this
-
 app = FastAPI()
 
-@app.put("/items/{item_id}")
-async def update_item(item_id: Annotated[int|None, Path(lt=100)], 
-                      item: Item|None = None):
+@app.get("/items/")
+async def read_items(ads_id: Annotated[str|None, Cookie()] = None):
+    """"
+    Cookie Parameter
     """
-    Body parameter with nested list inside the class
+    return {"ads_id": ads_id}
+
+@app.get("/items/headers")
+async def read_items_headers(user_agent: Annotated[str|None, Header()] = None):
     """
-    results = {"item_id": item_id, "item": item}
-    return results
+    Header Parameter
+    """
+    return {"User-Agent": user_agent}
+
+@app.get("/items/headers/bis")
+async def read_items_headers_bis(x_token: Annotated[list[str]|None, Header()] = None):
+    """
+    Header with multiple parameters
+    """
+    return {"X-Token values": x_token}
 
