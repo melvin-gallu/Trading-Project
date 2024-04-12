@@ -11,16 +11,13 @@ class Item(BaseModel):
     tax: float | None = None
     tags: list[str] = []
 
-class UserIn(BaseModel):
-    username: str
-    pwd: str
-    email: Annotated[EmailStr, Field(title="email type")]
-    full_name : str|None = None
-
-class UserOut(BaseModel):
+class BaseUser(BaseModel):
     username: str
     email: Annotated[EmailStr, Field(title="email type")]
     full_name: str|None = None
+
+class UserIn(BaseUser):
+    pwd: str
 
 @app.post("/items/", response_model=Item)
 async def create_items(item: Item) -> Any:
@@ -36,6 +33,6 @@ async def read_items() -> Any:
         {"name": "Plumbus", "price": 320.0}
     ]
 
-@app.post("/users/", response_model=UserOut)
+@app.post("/users/", response_model=BaseUser)
 async def create_user(user: UserIn) -> Any:
     return user
