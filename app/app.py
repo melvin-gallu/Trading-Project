@@ -1,27 +1,41 @@
 from fastapi import FastAPI, Query, Path, Body, Cookie, Header
-from pydantic import BaseModel, Field
-from typing import Annotated
+from pydantic import BaseModel, Field, EmailStr
+from typing import Annotated, Any
 
 app = FastAPI()
 
-@app.get("/items/")
-async def read_items(ads_id: Annotated[str|None, Cookie()] = None):
-    """"
-    Cookie Parameter
-    """
-    return {"ads_id": ads_id}
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list[str] = []
 
-@app.get("/items/headers")
-async def read_items_headers(user_agent: Annotated[str|None, Header()] = None):
-    """
-    Header Parameter
-    """
-    return {"User-Agent": user_agent}
+class UserIn(BaseModel):
+    username: str
+    pwd: str
+    email: Annotated[EmailStr, Field(title="email type")]
+    full_name : str|None = None
 
-@app.get("/items/headers/bis")
-async def read_items_headers_bis(x_token: Annotated[list[str]|None, Header()] = None):
-    """
-    Header with multiple parameters
-    """
-    return {"X-Token values": x_token}
+class UserOut(BaseModel):
+    username: str
+    email: Annotated[EmailStr, Field(title="email type")]
+    full_name: str|None = None
 
+@app.post("/items/", response_model=Item)
+async def create_items(item: Item) -> Any:
+    """
+    Define the returned data type with flexibility
+    """
+    return item
+
+@app.get("/items/", response_model=list[Item])
+async def read_items() -> Any:
+    return [
+        {"name": "Portal Gun", "price": 42.0},
+        {"name": "Plumbus", "price": 320.0}
+    ]
+
+@app.post("/users/", response_model=UserOut)
+async def create_user(user: UserIn) -> Any:
+    return user
