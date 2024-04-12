@@ -1,9 +1,13 @@
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status, Form
 from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated, Any, Union
 
 app = FastAPI()
 
-@app.post("/items/", status_code=status.HTTP_201_CREATED)
-async def create_item(name: str):
-    return {"name": name}
+@app.post("/login/")
+async def login(username: Annotated[str, Form()], pwd: Annotated[str, Form()]):
+    """
+    he way HTML forms (<form></form>) sends the data to the server normally uses a "special" encoding for that data, 
+    it's different from JSON.
+    """
+    return {"username": username}
