@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated, Any, Union
@@ -33,3 +33,23 @@ async def read_unicorn(name: str):
     if name == "yolo":
         raise UnicornException(name=name)
     return {"unicorn_name": name}
+
+class Item(BaseModel):
+    name: str
+    description: str|None = None
+    price: float
+    tax: float|None = None
+    tags: set[str] = set()
+
+@app.post("/items/", response_model=Item, tags=['items'], status_code=status.HTTP_201_CREATED)
+async def create_item(item: Item):
+    """
+    Create an item with all the information :
+
+    - **name**: each item must have a name
+    - **description**: a long description
+    - **price**: required
+    - **tax**: if the item doesnt have tax, you can omit this
+    - **tags**: a set of unique tag strings for this item
+    """
+    return item
