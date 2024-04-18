@@ -1,44 +1,35 @@
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated, Any, Union
 
 app = FastAPI()
 
-@app.post("/file/")
-async def create_file(file: Annotated[bytes|None, File()] = None):
-    """
-    Store the whole content of the file in memory.
-    Works well only for small size files
-    """
-    return {"file_size": len(file)}
+items = {"foo": "The Foo Wrestlers"}
 
-@app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile|None = None):
-    """
-    Store in memory up to max size limit, then store in disk.
-    Works well for large files without consuming all the memory.
-    """
-    if not file:
-        return {"message": "No upload file sent"}
-    
-    actual_file = file.file
-    contents = file.file.read()
-    contents = await actual_file.read() #same as line just above
-    return {"filename": file.filename}
-
-@app.post("/uploadfiles/")
-async def create_upload_files(files: list[UploadFile|None]|None = None):
-    if not files:
-        return {"message": "No upload file sent"}
-    return {"filenames": [file.filename for file in files]}
+@app.get("/items/{item_id}")
+async def read_item(item_id: str):
+    if item_id not in items:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return {"item": item_id}
 
 
-@app.post("/form-files")
-async def create_form_file(file: Annotated[UploadFile, File()], token: Annotated[str, Form()]):
+class UnicornException(Exception):
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+@app.exception_handler(UnicornException)
+async def unicorn_exception_handler(request: Request, exc: UnicornException):
     """
-    Path for a form with file
+    Define how the UnicornException will be handled
     """
-    return {
-        "file content type": file.content_type,
-        "token": token
-    }
+    return JSONResponse(
+        status_code=418,
+        content={"message": f"Oops! {exc.name} did something."}
+    )
+
+@app.get("/unicorn/{name}")
+async def read_unicorn(name: str):
+    if name == "yolo":
+        raise UnicornException(name=name)
+    return {"unicorn_name": name}
