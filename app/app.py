@@ -32,3 +32,13 @@ async def create_upload_files(files: list[UploadFile|None]|None = None):
         return {"message": "No upload file sent"}
     return {"filenames": [file.filename for file in files]}
 
+
+@app.post("/form-files")
+async def create_form_file(file: Annotated[UploadFile, File()], token: Annotated[str, Form()]):
+    """
+    Path for a form with file
+    """
+    return {
+        "file content type": file.content_type,
+        "token": token
+    }
