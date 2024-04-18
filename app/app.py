@@ -1,13 +1,34 @@
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status, Form
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, status, Form, File, UploadFile
 from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated, Any, Union
 
 app = FastAPI()
 
-@app.post("/login/")
-async def login(username: Annotated[str, Form()], pwd: Annotated[str, Form()]):
+@app.post("/file/")
+async def create_file(file: Annotated[bytes|None, File()] = None):
     """
-    The way HTML forms sends the data to the server normally uses a "special" encoding for that data, 
-    it's different from JSON.
+    Store the whole content of the file in memory.
+    Works well only for small size files
     """
-    return {"username": username}
+    return {"file_size": len(file)}
+
+@app.post("/uploadfile/")
+async def create_upload_file(file: UploadFile|None = None):
+    """
+    Store in memory up to max size limit, then store in disk.
+    Works well for large files without consuming all the memory.
+    """
+    if not file:
+        return {"message": "No upload file sent"}
+    
+    actual_file = file.file
+    contents = file.file.read()
+    contents = await actual_file.read() #same as line just above
+    return {"filename": file.filename}
+
+@app.post("/uploadfiles/")
+async def create_upload_files(files: list[UploadFile|None]|None = None):
+    if not files:
+        return {"message": "No upload file sent"}
+    return {"filenames": [file.filename for file in files]}
+
