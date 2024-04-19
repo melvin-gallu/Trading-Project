@@ -1,43 +1,27 @@
 from datetime import datetime
 
-from fastapi import FastAPI, Path, Body, Depends
+from fastapi import FastAPI, Path, Body, Depends, Cookie
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Annotated
 
 app = FastAPI()
 
-async def common_parameters(q: str|None = None, skip: int = 0, limit: int = 100):
-    return {"q": q, "skip": skip, "limit": limit}
+def query_extractor(q: str|None = None):
+    return q
 
-CommonsDep = Annotated[dict, Depends(common_parameters)]
-
-class CommonQueryParams:
-    def __init__(self, q: str|None = None, skip: int = 0, limit: int = 100) -> None:
-        self.q = q
-        self.skip = skip
-        self.limit = limit
+def query_or_cookie_extractor(q: Annotated[str, Depends(query_extractor)],
+                              last_query: Annotated[str|None, Cookie()] = None):
+    """
+    Second dependency
+    """
+    if not q:
+        return last_query
+    return q
 
 @app.get("/items/")
-async def read_items(commons: CommonsDep):
+async def read_query(query_or_default: Annotated[str, Depends(query_or_cookie_extractor)]):
     """
-    Uses dependency and alias
-    This is in partice used when you need to have a lot of times the same dependencies on parameters accross various path
+    Use sub-dependency
     """
-    return commons
-
-@app.get("/users/")
-async def read_users(commons: CommonsDep):
-    return commons
-
-@app.get("/items/class")
-async def read_items_class(commons: Annotated[CommonQueryParams, Depends(CommonQueryParams)]):
-    """
-    Uses a class as dependency
-    """
-    response = {}
-    if commons.q:
-        response.update({"q": commons.q})
-    response.update({"items": commons.skip + commons.limit})
-    return response
-
+    return {"q_or_cookie": query_or_default}
