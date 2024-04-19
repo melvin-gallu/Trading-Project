@@ -1,38 +1,43 @@
 from datetime import datetime
 
-from fastapi import FastAPI, Path, Body
+from fastapi import FastAPI, Path, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Annotated
 
-class Item(BaseModel):
-    name: str|None = None
-    description: str|None = None
-    price: float|None = None
-    tax: float = 10.5
-    tags: list[str] = []
-
 app = FastAPI()
 
-items = {
-    "foo": {"name": "Foo", "price": 50.2},
-    "bar": {"name": "Bar", "description": "The bartenders", "price": 62, "tax": 20.2},
-    "baz": {"name": "Baz", "description": None, "price": 50.2, "tax": 10.5, "tags": []},
-}
+async def common_parameters(q: str|None = None, skip: int = 0, limit: int = 100):
+    return {"q": q, "skip": skip, "limit": limit}
 
-@app.get("/items/{id}")
-async def read_item(id: Annotated[str|None, Path()]):
-    return items[id]
+CommonsDep = Annotated[dict, Depends(common_parameters)]
 
+class CommonQueryParams:
+    def __init__(self, q: str|None = None, skip: int = 0, limit: int = 100) -> None:
+        self.q = q
+        self.skip = skip
+        self.limit = limit
 
-@app.patch("/items/{id}", response_model=Item)
-async def udpdate_item(id: Annotated[str|None, Path()], item: Annotated[Item, Body()]):
+@app.get("/items/")
+async def read_items(commons: CommonsDep):
     """
-    Update partially an item using **exclude_unset**
+    Uses dependency and alias
+    This is in partice used when you need to have a lot of times the same dependencies on parameters accross various path
     """
-    stored_item_data = items[id] #retrieved stored data
-    stored_item_model = Item(**stored_item_data) #convert data t Pydantic model
-    udpdate_data = item.model_dump(exclude_unset=True) #generate dict without default values from input model
-    updated_item = stored_item_model.model_copy(update=udpdate_data) #create a copy of stored model, update its attributes with received partial updates
-    items[id] = jsonable_encoder(updated_item) #convert the copied model to something that can be stored in a DB
-    return updated_item
+    return commons
+
+@app.get("/users/")
+async def read_users(commons: CommonsDep):
+    return commons
+
+@app.get("/items/class")
+async def read_items_class(commons: Annotated[CommonQueryParams, Depends(CommonQueryParams)]):
+    """
+    Uses a class as dependency
+    """
+    response = {}
+    if commons.q:
+        response.update({"q": commons.q})
+    response.update({"items": commons.skip + commons.limit})
+    return response
+
