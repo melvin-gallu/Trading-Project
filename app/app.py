@@ -1,27 +1,26 @@
 from datetime import datetime
 
-from fastapi import FastAPI, Path, Body, Depends, Cookie
+from fastapi import FastAPI, Path, Body, Depends, Cookie, Header, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Annotated
 
 app = FastAPI()
 
-def query_extractor(q: str|None = None):
-    return q
+async def verify_token(x_token: str = Header()):
+    if x_token != "fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+    
+async def verify_key(x_key: str = Header()):
+    if x_key != "fake-super-secret-key":
+        raise HTTPException(status_code=400, detail="X-Key header invalid")
+    return x_key
+    
 
-def query_or_cookie_extractor(q: Annotated[str, Depends(query_extractor)],
-                              last_query: Annotated[str|None, Cookie()] = None):
+@app.get("/items/", dependencies=[Depends(verify_token), Depends(verify_key)])
+async def read_items():
     """
-    Second dependency
+    Use dependencies in the path decorator
     """
-    if not q:
-        return last_query
-    return q
+    return {"message": "key and token valid"}
 
-@app.get("/items/")
-async def read_query(query_or_default: Annotated[str, Depends(query_or_cookie_extractor)]):
-    """
-    Use sub-dependency
-    """
-    return {"q_or_cookie": query_or_default}
