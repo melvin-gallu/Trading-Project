@@ -1,19 +1,28 @@
-from datetime import datetime
-
-from fastapi import FastAPI, Path, Body, Depends, Cookie, Header, HTTPException
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
 from typing import Annotated
 
+from fastapi import FastAPI, Depends, HTTPException
 
+app = FastAPI()
 
-async def verify_token(x_token: str = Header()):
-    if x_token != "fake-super-secret-token":
-        raise HTTPException(status_code=400, detail="X-Token header invalid")
+data = {
+    "plumbus": {"description": "Freshly pickled plumbus", "owner": "Morty"},
+    "portal-gun": {"description": "Gun to create portals", "owner": "Rick"},
+}
+
+class OwnerError(Exception):
+    pass
+
+def get_username():
+    try:
+        yield "Rick"
+    except OwnerError as e:
+        raise HTTPException(status_code=400, detail=f"Owner error : {e}")
     
-async def verify_key(x_key: str = Header()):
-    if x_key != "fake-super-secret-key":
-        raise HTTPException(status_code=400, detail="X-Key header invalid")
-    return x_key
-    
-app = FastAPI(dependencies=[Depends(verify_token), Depends(verify_key)]) #add global dependecies to the whole app
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id not in data:
+        raise HTTPException(status_code=404, detail="Item not found")
+    item = data[item_id]
+    if item["owner"] != username:
+        raise OwnerError(username)
+    return item
