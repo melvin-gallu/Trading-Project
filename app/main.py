@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 from .dependencies import get_query_token, get_token_header
 from .routeurs import items, users
 from .internal import admin
@@ -33,6 +35,9 @@ app.include_router(
     dependencies=[Depends(get_token_header)],
     responses={418: {"description": "I'm a teapot"}}
 )
+
+#add an impendent application in a specific path
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def root():
