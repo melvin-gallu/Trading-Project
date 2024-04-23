@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from .dependencies import get_query_token, get_token_header
 from .routeurs import items, users
 from .internal import admin
+
 
 app = FastAPI(dependencies=[Depends(get_query_token)])
 
@@ -36,3 +37,17 @@ app.include_router(
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+def write_notification(email: str, message: str = ""):
+    with open("log.txt", mode="w") as email_file:
+        content = f"notification for {email}: {message}"
+        email_file.write(content)
+
+@app.post("/send-notification/{email}")
+async def send_notification(email: str, background_tasks: BackgroundTasks):
+    """
+    The write notification function will be run after the response is sent 
+    """
+    background_tasks.add_task(write_notification, email, message="some notification")
+    return {"message": "Notification sent in the background"}
+
