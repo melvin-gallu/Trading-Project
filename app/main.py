@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from .dependencies import get_query_token, get_token_header
+from .routeurs import items, users
+from .internal import admin
 
-app = FastAPI()
+app = FastAPI(dependencies=[Depends(get_query_token)])
 
 origins = [
     "http://localhost:3000",
@@ -18,6 +21,18 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+#Include the router in the main FastAPI app
+app.include_router(users.router)
+app.include_router(items.router)
+#Set up custom prefix, tags, dependencies for an already predefined route
+app.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(get_token_header)],
+    responses={418: {"description": "I'm a teapot"}}
+)
+
 @app.get("/")
-async def main():
+async def root():
     return {"message": "Hello World"}
