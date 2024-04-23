@@ -1,15 +1,23 @@
-import time
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    """
-    Middleware function that is called before each request and after each response
-    """
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
+origins = [
+    "http://localhost:3000",
+    "https://localhost:8080",
+    "http://localhost"
+]
+
+#Add the different parameters needed for the frontend to communicate with the backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, #can yuse allow_origin_regex to define regex string to match against origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+@app.get("/")
+async def main():
+    return {"message": "Hello World"}
