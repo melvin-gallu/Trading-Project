@@ -7,7 +7,7 @@ from .routeurs import items, users
 from .internal import admin
 
 
-app = FastAPI(dependencies=[Depends(get_query_token)])
+app = FastAPI(dependencies=[Depends(get_token_header)])
 
 origins = [
     "http://localhost:3000",
@@ -32,12 +32,10 @@ app.include_router(
     admin.router,
     prefix="/admin",
     tags=["admin"],
-    dependencies=[Depends(get_token_header)],
+    dependencies=[Depends(get_query_token)],
     responses={418: {"description": "I'm a teapot"}}
 )
 
-#add an impendent application in a specific path
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def root():
@@ -55,4 +53,3 @@ async def send_notification(email: str, background_tasks: BackgroundTasks):
     """
     background_tasks.add_task(write_notification, email, message="some notification")
     return {"message": "Notification sent in the background"}
-
