@@ -5,9 +5,10 @@ from fastapi.staticfiles import StaticFiles
 from .dependencies import get_query_token, get_token_header
 from .routeurs import items, users
 from .internal import admin
+from .websocketbackend import stream
 
 
-app = FastAPI(dependencies=[Depends(get_token_header)])
+app = FastAPI()
 
 origins = [
     "http://localhost:3000",
@@ -27,6 +28,7 @@ app.add_middleware(
 #Include the router in the main FastAPI app
 app.include_router(users.router)
 app.include_router(items.router)
+app.include_router(stream.router)
 #Set up custom prefix, tags, dependencies for an already predefined route
 app.include_router(
     admin.router,

@@ -31,3 +31,8 @@ def test_create_user():
         json={"name": "Melvin"}
     )
     assert response.status_code == 200
+
+def test_wensocket():
+    with client.websocket_connect("/websocket/ws") as websocket:
+        data = websocket.receive_text()
+        assert data == "Melvin"
