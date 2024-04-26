@@ -7,56 +7,25 @@ import asyncio
 from .GeminiSocketManager import GeminiSocketManager
 
 router = APIRouter(
-    prefix="/ws",
+    prefix="/gemini",
     tags=["ws"]
 )
 
-html_content = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>External WebSocket Data</title>
-</head>
-<body>
-    <h1>Hello</h1>
-    <div id="messages"></div>
-
-    <script>
-        const ws = new WebSocket("ws://localhost:8000/ws");
-
-        ws.onopen = () => {
-            console.log("WebSocket connection established.");
-        };
-
-        ws.onmessage = (event) => {
-            const messagesDiv = document.getElementById("messages");
-            messagesDiv.innerHTML += `<p>${event.data}</p>`;
-        };
-
-        ws.onerror = (error) => {
-            console.error(`WebSocket error: ${error}`);
-        };
-
-        ws.onclose = () => {
-            console.log("WebSocket connection closed.");
-        };
-    </script>
-</body>
-</html>
-"""
 
 
 external_ws_client = GeminiSocketManager()
 
-@router.websocket("/")
+@router.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-    while True:
-        data = {"message": "hello"}
-        await ws.send_text(f"Message text was: {data}")
-
-@router.get("/")
-async def get():
-    return HTMLResponse(html_content)
+    external_ws_client.connected_clients.add(ws)
+    try:
+        while True:
+            data = await external_ws_client.connect()
+            await ws.send_text(f"Message text was: {data}")
+    except WebSocketDisconnect:
+        print(f"Websocket connection closed cleanly")
+    except Exception as e:
+        print(f"Websocket error : {e}")
+    finally:
+        external_ws_client.connected_clients.remove(ws)

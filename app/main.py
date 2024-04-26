@@ -23,9 +23,42 @@ app.add_middleware(
 
 app.include_router(gemini_ws.router)
 
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External WebSocket Data</title>
+</head>
+<body>
+    <h1>Hello</h1>
+    <div id="messages"></div>
 
+    <script>
+        const ws = new WebSocket("ws://localhost:8000/gemini/ws");
+
+        ws.onopen = () => {
+            console.log("WebSocket connection established.");
+        };
+
+        ws.onmessage = (event) => {
+            const messagesDiv = document.getElementById("messages");
+            messagesDiv.innerHTML += `<p>${event.data}</p>`;
+        };
+
+        ws.onerror = (error) => {
+            console.error(`WebSocket error: ${error}`);
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket connection closed.");
+        };
+    </script>
+</body>
+</html>
+"""
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
-
+    return HTMLResponse(html_content)
