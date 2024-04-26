@@ -1,12 +1,16 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+
+from .gemini import gemini_ws
 
 app = FastAPI()
 
 origins = [
     "http://localhost:3000",
-    "https://localhost:8080",
-    "http://localhost"
+    "https://localhost:8000",
+    "http://localhost",
+    "http://localhost:8000"
 ]
 
 app.add_middleware(
@@ -16,6 +20,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+app.include_router(gemini_ws.router)
+
+
 
 @app.get("/")
 async def root():
