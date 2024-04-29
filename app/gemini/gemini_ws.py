@@ -11,21 +11,20 @@ router = APIRouter(
     tags=["ws"]
 )
 
-
-
 external_ws_client = GeminiSocketManager()
 
-@router.websocket("/ws")
+@router.websocket("/market-data")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-    external_ws_client.connected_clients.add(ws)
     try:
         while True:
-            data = await external_ws_client.connect()
-            await ws.send_text(f"Message text was: {data}")
+            await external_ws_client.connect()
+            async for data in external_ws_client.listen():
+                clean_data = await external_ws_client.clean_data(data=data)
+                await ws.send_json(clean_data)
     except WebSocketDisconnect:
         print(f"Websocket connection closed cleanly")
     except Exception as e:
         print(f"Websocket error : {e}")
     finally:
-        external_ws_client.connected_clients.remove(ws)
+        ws.close()

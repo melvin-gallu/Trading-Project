@@ -36,7 +36,7 @@ html_content = """
     <div id="messages"></div>
 
     <script>
-        const ws = new WebSocket("ws://localhost:8000/gemini/ws");
+        const ws = new WebSocket("ws://localhost:8000/gemini/market-data");
 
         ws.onopen = () => {
             console.log("WebSocket connection established.");
