@@ -1,49 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import useApi from "./FastapiRest.js";
 
 const Home = () => {
-    // reactive values. Whenever the variable name changes, it will re render the templates
-    // const [name, setName] = useState('melvin');
-    // const [age, setAge] = useState(25);
+    const { data, loading, error } = useApi('GET','/test','check');
 
-    // const handleClick = (e) => {
-    //     /* adding e to get the event logged in */
-    //     console.log(e);
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: <b>{error.message}</b></p>;
 
-    //     setName('audrey');
-    //     setAge(35);
-    // }
+    const dataString = JSON.stringify(data, null, 2);
 
-    // // const handleClickAgain = (name, e) => {
-    // //     console.log("Hello " + name, e)
-    // // }
-    
-    // return (
-    //     <div className="home">
-    //         <h2>Homepage</h2>
-    //         <p>{ name } is { age } yo</p>
-    //         <button onClick={handleClick}>Click me</button>
-    //     </div>
-    // );
-
-    const [blogs, setBlogs] = useState([
-        { title: 'My new website', body: 'lorem ipsum...', author: 'mario', id: 1 },
-        { title: 'Welcome party!', body: 'lorem ipsum...', author: 'yoshi', id: 2 },
-        { title: 'Web dev top tips', body: 'lorem ipsum...', author: 'mario', id: 3 }
-    ]);
+    console.log(data)
 
     return (
-        // <div className="home">
-        //     {/* cycle through blogs with map js function */}
-        //     {blogs.map((blog) => (
-        //         <div className="blog-preview" key={blog.id}>
-        //             <h2>{blog.title}</h2>
-        //             <p>Written by {blog.author}  </p>
-        //         </div>
-        //     ))}
-        // </div>
-
         <div className="home">
             <h2>Home Page</h2>
+            <br />
+            <p>{data.message.test}</p>
+            <p>{data.message.test2}</p>
         </div>
     )
 }
