@@ -1,5 +1,5 @@
 # Dockerfile, Image, Container
-FROM python:3.11
+FROM python:3.11-slim
 
 WORKDIR /code
 
@@ -9,6 +9,5 @@ RUN python -m pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 
-EXPOSE 5000
-ENV FLASK_APP=/code/app/app.py
-CMD [ "python", "-m" , "flask", "run", "--host=0.0.0.0"]
+EXPOSE 8000
+CMD [ "uvicorn", "app.main:app" , "--host", "0.0.0.0", "--port", "8000"]

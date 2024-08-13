@@ -1,3 +1,7 @@
-from fastapi import FastApi
+from fastapi import FastAPI
 
-app = FastApi()
+app = FastAPI()
+
+@app.get('/')
+def home():
+    return {'message':'hello world from fastapi app'}
