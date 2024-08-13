@@ -1,5 +1,4 @@
 import { useState } from "react";
-import BlogList from "./BlogList";
 
 const Home = () => {
     // reactive values. Whenever the variable name changes, it will re render the templates
@@ -44,8 +43,7 @@ const Home = () => {
         // </div>
 
         <div className="home">
-            <BlogList blogs={blogs} title="All Blogs" />
-            <BlogList blogs={blogs.filter((blog) => blog.author === 'mario')} title="Mario's blogs" />
+            <h2>Home Page</h2>
         </div>
     )
 }
