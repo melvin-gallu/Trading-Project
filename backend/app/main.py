@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import api
+
 app = FastAPI()
 
 origins = [
@@ -15,6 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+app.include_router(api.router)
 
 @app.get('/', tags=["root"])
 async def home() -> dict:

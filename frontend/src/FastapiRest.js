@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 const useApi = (method, endpoint, requestData = null, requestHeaders = null) => {
   const [data, setData] = useState(null);
@@ -28,7 +28,7 @@ const useApi = (method, endpoint, requestData = null, requestHeaders = null) => 
     };
 
     fetchData();
-  }, [method, endpoint,requestData, requestHeaders]);
+  }, [method, endpoint]);
 
   return { data, loading, error };
 };

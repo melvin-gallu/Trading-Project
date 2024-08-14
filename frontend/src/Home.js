@@ -1,22 +1,30 @@
-import { useState, useEffect } from "react";
-import useApi from "./FastapiRest.js";
+import { useState } from "react";
+import useApi from "./FastapiRest";
 
 const Home = () => {
-    const { data, loading, error } = useApi('GET','/test','check');
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: <b>{error.message}</b></p>;
+    const item = {'name':'Melvin', 'description':'my name', 'price':10, 'tax':3.5}
+    const {data, loading, error} = useApi('POST','/items',item)
 
-    const dataString = JSON.stringify(data, null, 2);
+    if (loading) return <p>Loading...</p>
+    if (error) {
+        console.log(error)
+        return (
+            <div>
+                <p>Error: <b>{error.message}</b></p>
+                <p>Status: {error.response.statusText}</p>
+            </div>
+        )
+    }
 
-    console.log(data)
+    if (!data) return <p>Nothing</p>
+
+    const dataDisplay = JSON.stringify(data)
 
     return (
         <div className="home">
             <h2>Home Page</h2>
-            <br />
-            <p>{data.message.test}</p>
-            <p>{data.message.test2}</p>
+            <p>{dataDisplay}</p>
         </div>
     )
 }
